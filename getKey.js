@@ -1,44 +1,54 @@
-import puppeteer from "puppeteer";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloodstrike Key Generator</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f5f5f5; text-align:center; padding:50px; }
+.card { background:#fff; padding:25px; border-radius:15px; max-width:400px; margin:auto; box-shadow:0 6px 20px rgba(0,0,0,0.1);}
+.key-box { margin:20px 0; font-weight:bold; font-size:1.2rem; padding:10px; background:#eee; border-radius:10px; }
+button { padding:10px 16px; border:none; border-radius:8px; background:#8e2de2; color:#fff; cursor:pointer; margin:5px; transition:0.2s; }
+button:hover { transform:scale(1.05); opacity:0.9; }
+.loading { opacity:0.6; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h2>Bloodstrike Key Generator</h2>
+    <div class="key-box" id="keyBox">Klik Generate</div>
+    <button onclick="generateKey()">Generate Key</button>
+    <button onclick="copyKey()">Copy Key</button>
+</div>
 
-export default async function handler(req, res) {
+<script>
+async function generateKey() {
+    const keyBox = document.getElementById('keyBox');
+    keyBox.textContent = "Loading...";
+    keyBox.classList.add("loading");
+
     try {
-        // Jalankan Puppeteer headless browser
-        const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            headless: true
-        });
-        const page = await browser.newPage();
+        // Ganti URL ini dengan URL deploy API Vercel kamu
+        const res = await fetch('https://my-vercel-bloodstrike.vercel.app/api/getKey');
+        const data = await res.json();
+        
+        keyBox.classList.remove("loading");
 
-        // Buka shortlink Starcool
-        await page.goto("https://sfl.gl/huA6l", { waitUntil: "networkidle2" });
-
-        // Tunggu redirect balik ke halaman generate key
-        await page.waitForTimeout(2000); // bisa di-adjust sesuai redirect
-
-        // Cek kalau ada parameter ?gen=true di URL
-        const url = page.url();
-        if (!url.includes("?gen=true")) {
-            // Tambahkan param agar auto generate
-            await page.goto(url + "?gen=true", { waitUntil: "networkidle2" });
-        }
-
-        // Ambil key dari element #keyText
-        const key = await page.$eval("#keyText", el => el.textContent.trim());
-
-        await browser.close();
-
-        if (key && key !== "Maximum Key" && key !== "Klik Generate") {
-            res.status(200).json({
-                success: true,
-                key: key
-            });
+        if(data.success){
+            keyBox.textContent = data.key;
         } else {
-            res.status(200).json({
-                success: false,
-                message: "Key belum tersedia atau limit tercapai"
-            });
+            keyBox.textContent = "Gagal: " + (data.message || "Limit tercapai");
         }
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.toString() });
+    } catch (err) {
+        keyBox.classList.remove("loading");
+        keyBox.textContent = "Error: " + err;
     }
 }
+
+function copyKey() {
+    const key = document.getElementById('keyBox').textContent;
+    navigator.clipboard.writeText(key).then(()=> alert('Key disalin: ' + key));
+}
+</script>
+</body>
+</html>
