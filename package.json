@@ -1,7 +1,7 @@
 {
   "name": "bloodstrike-key-api",
   "version": "1.0.0",
-  "main": "api/getKey.js",
+  "main": "getKey.js",
   "dependencies": {
     "puppeteer": "^21.3.8"
   }
